@@ -1,0 +1,70 @@
+import boto3
+import aws
+import duo
+import os
+import random
+
+from dotenv import load_dotenv
+load_dotenv()
+aws_access_key_id,aws_secret_access_key, region_name= os.environ.get('aws_access_key_id'), os.environ.get('aws_secret_access_key'), os.environ.get('region_name')
+ikey,skey,hostname= os.environ.get('ikey'), os.environ.get('skey'),os.environ.get('hostname')
+session = boto3.Session(aws_access_key_id = aws_access_key_id,aws_secret_access_key=aws_secret_access_key, region_name=region_name)
+
+ec2_client = session.client("ec2")
+
+def main():
+    option=-1
+    while option!= None:
+        print ()
+        print('*'*100,"\n") 
+        print("[1]Reset SecureAccess Lab in Duo & AWS")
+        print("[2]Only reset Duo MFA bypasscodes")
+        print("[3]Start Secure Access Lab")
+        print("[0]Exit")
+        selection=input("Select any option number :" )
+        while not selection.isdigit():
+            print("\nInvalid option. Try again!")
+            selection=input("Select any option number :" )
+        option= int(selection) 
+
+        if option==0:
+            option=None
+        elif option==1 or option==2:
+            print("\t",'='*100) 
+            bypass_code=input("\tEnter a 9-digit Duo MFA bypass code [or] Press enter to system-generate a bypass code :")
+            if len(bypass_code) <9:
+                bypass_code = random.randint(100000000, 999999999)
+                print("\tSystem generated Duo bypass code:", bypass_code)
+            users= duo.get_all_users(hostname,skey,ikey)
+            duo.set_bypass_codes(users, hostname, skey, ikey,bypass_code)
+            #all_bypass_codes=get_bypass_codes(users, hostname,skey,ikey) # delete all 
+            #delete_bypass_codes(all_bypass_codes, hostname, skey, ikey)
+            if option==1:
+                i,aws_clients=1,[]
+                print("\t",'='*100) 
+                while i <=15:
+                    aws_clients.append("win11-client"+str(i))
+                    i+=1
+                lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
+                stop_status= aws.stop_ec2_instances(ec2_client, lab_ec2_instances)
+                volumeIds= aws.reset_ec2_volumes(ec2_client, lab_ec2_instances)
+
+        elif option==3:
+            i,aws_clients=1,[]
+            print("\t",'='*100) 
+            inp= input("\tEnter number of clients to initiate [1-15]:")
+            while (not inp.isdigit()) or int(inp) > 15 or int(inp) <1:
+                inp= input("\tInvalid Option !\nEnter number of clients to initiate [1-15]:")
+                
+            while i <=int(inp):
+                aws_clients.append("win11-client"+str(i))
+                i+=1
+            lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
+            start_status = aws.start_ec2_instances(ec2_client, lab_ec2_instances)
+
+        else:
+            option=-1
+
+   
+if __name__ == "__main__":
+    main()
