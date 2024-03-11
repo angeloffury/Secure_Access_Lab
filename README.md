@@ -12,7 +12,7 @@ MAC OS
 
 First installation:
 ```
-$ git clone <reponame>
+$ git clone https://github.com/angeloffury/Secure_Access_Lab.git
 $ cd Secure_Access_Lab
 $ touch .env
 $ nano .env
