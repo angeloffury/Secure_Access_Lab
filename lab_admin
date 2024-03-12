@@ -18,7 +18,7 @@ def main():
         print ()
         print('*'*100,"\n") 
         print("[1]Reset SecureAccess Lab in Duo & AWS")
-        print("[2]Only reset Duo MFA bypasscodes")
+        print("[2]Rest Duo MFA bypasscodes only")
         print("[3]Start Secure Access Lab")
         print("[0]Exit")
         selection=input("Select any option number :" )
@@ -29,17 +29,13 @@ def main():
 
         if option==0:
             option=None
-        elif option==1 or option==2:
+        elif option==1:
             print("\t",'='*100) 
-            bypass_code=input("\tEnter a 9-digit Duo MFA bypass code [or] Press enter to system-generate a bypass code :")
-            if len(bypass_code) <9:
-                bypass_code = random.randint(100000000, 999999999)
-                print("\tSystem generated Duo bypass code:", bypass_code)
             users= duo.get_all_users(hostname,skey,ikey)
-            duo.set_bypass_codes(users, hostname, skey, ikey,bypass_code)
-            #all_bypass_codes=get_bypass_codes(users, hostname,skey,ikey) # delete all 
-            #delete_bypass_codes(all_bypass_codes, hostname, skey, ikey)
-            if option==1:
+            all_bypass_codes=duo.get_bypass_codes(users, hostname,skey,ikey)
+            duo.delete_bypass_codes(all_bypass_codes, hostname, skey, ikey)
+            reset_aws=input("\n\t\tAre you sure you want to reset the AWS client machines? [y/n]: ")
+            if reset_aws=='y'or reset_aws=='Y':
                 i,aws_clients=1,[]
                 print("\t",'='*100) 
                 while i <=15:
@@ -49,18 +45,25 @@ def main():
                 stop_status= aws.stop_ec2_instances(ec2_client, lab_ec2_instances)
                 volumeIds= aws.reset_ec2_volumes(ec2_client, lab_ec2_instances)
 
-        elif option==3:
+        elif option==2 or option==3:
             i,aws_clients=1,[]
             print("\t",'='*100) 
-            inp= input("\tEnter number of clients to initiate [1-15]:")
-            while (not inp.isdigit()) or int(inp) > 15 or int(inp) <1:
-                inp= input("\tInvalid Option !\nEnter number of clients to initiate [1-15]:")
-                
-            while i <=int(inp):
-                aws_clients.append("win11-client"+str(i))
-                i+=1
-            lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
-            start_status = aws.start_ec2_instances(ec2_client, lab_ec2_instances)
+            bypass_code=input("\tEnter a 9-digit Duo MFA bypass code [or] Press enter to system-generate a bypass code :")
+            if len(bypass_code) <9:
+                bypass_code = random.randint(100000000, 999999999)
+                print("\tSystem generated Duo bypass code:", bypass_code)
+            users= duo.get_all_users(hostname,skey,ikey)
+            duo.set_bypass_codes(users, hostname, skey, ikey,bypass_code)
+            if option==3:
+                inp= input("\tEnter number of clients to initiate [1-15]:")
+                while (not inp.isdigit()) or int(inp) > 15 or int(inp) <1:
+                    inp= input("\tInvalid Option !\nEnter number of clients to initiate [1-15]:")
+                    
+                while i <=int(inp):
+                    aws_clients.append("win11-client"+str(i))
+                    i+=1
+                lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
+                start_status = aws.start_ec2_instances(ec2_client, lab_ec2_instances)
 
         else:
             option=-1

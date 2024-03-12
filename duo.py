@@ -8,7 +8,6 @@ def get_bypass_codes(users,hostname,skey,ikey) :
     all_bypass_codes=[]
     for x in users:
         x_path='/admin/v1/users/'+x['user_id']+'/bypass_codes'
-        print(x['username'])
         api_auth = util.sign('GET',hostname,x_path,{},skey,ikey)
         bypass_code = requests.get("https://"+hostname+x_path, headers=api_auth)
         time.sleep(0.1)
@@ -17,12 +16,10 @@ def get_bypass_codes(users,hostname,skey,ikey) :
             number_of_bypass_codes =len(response)
             x=0
             while x<number_of_bypass_codes:
-                print("Bypass code id :",response[x].get('bypass_code_id'))
-                print("Expire on :",response[x].get('expiration'))
                 all_bypass_codes.append(response[x])
                 x+=1
         else:
-            print("Bypass code : Empty")
+            print("\t\tBypass code of",x['username']," : Empty")
         bypass_code.close()
     return all_bypass_codes
 
@@ -46,21 +43,23 @@ def set_bypass_codes(users,hostname,skey,ikey,bypass_code):
 
 #Delete all bypass codes by calling DELETE /admin/v1/bypass_codes/[bypass_code_id]
 def delete_bypass_codes(bypas_codes,hostname,skey,ikey):
-    print("Deleting bypass code for users...")
-    for x in bypas_codes:
-        print(x)
-        x_path='/admin/v1/bypass_codes/'+x.get('bypass_code_id')
-        print("==============================================================\n"+x_path)
-        api_auth = util.sign('DELETE',hostname,x_path,{},skey,ikey)
-        bypass_code = requests.delete("https://"+hostname+x_path,headers=api_auth)
-        time.sleep(0.1)
-        response = bypass_code.json()
-        if response!={}:
-            print (response)
-        else:
-            print("Bypass code : Empty")
-        bypass_code.close()
-    print("==============================================================\n")  
+    if not bypas_codes==[] :
+        i=1
+        for x in bypas_codes:
+            print("\t\tTrying to DELETE bypass code for Client",i,"...")
+            x_path='/admin/v1/bypass_codes/'+x.get('bypass_code_id')
+            api_auth = util.sign('DELETE',hostname,x_path,{},skey,ikey)
+            conn = requests.delete("https://"+hostname+x_path,headers=api_auth)
+            time.sleep(0.1)
+            response = conn.json()
+            if response!={}:
+                print("\t\tDELETED bypass code for Client",i)
+            conn.close()
+            i+=1
+    else:
+        print("\n\t\tNo Bypass codes to DELETE")
+        
+
 
 
 #Get all users_ids    
