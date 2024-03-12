@@ -36,7 +36,7 @@ def set_bypass_codes(users,hostname,skey,ikey,bypass_code):
         time.sleep(0.1)
         response = conn.json()
         if response!=[]:
-            print("\t\t",x['username'], "bypass code is changed")
+            print("\t\t",x['username'], "bypass code is set")
         else:
             print("\t\tBypass code : Empty")
         conn.close()
