@@ -63,6 +63,7 @@ def main():
                 while i <=int(inp):
                     aws_clients.append("win11-client"+str(i))
                     i+=1
+                
                 lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
                 start_status = aws.start_ec2_instances(ec2_client, lab_ec2_instances)
         elif option==3:

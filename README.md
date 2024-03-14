@@ -17,7 +17,6 @@ $ cd Secure_Access_Lab
 $ pip3 install --requirement requirements
 $ touch .env
 $ nano .env
-
 ```
 Add the below text inside .env file: 
 ```
