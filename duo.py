@@ -66,8 +66,17 @@ def delete_bypass_codes(bypas_codes,hostname,skey,ikey):
 #Get all users_ids    
 def get_all_users(hostname,skey,ikey):
     path = '/admin/v1/users'
+    i,username_list=1,[]
+    while i <=15:
+        username_list.append('client'+str(i))
+        i+=1
     api_auth = util.sign('GET',hostname,path,{},skey,ikey)
     all_users = requests.get("https://"+hostname+path, headers=api_auth)
-    users=all_users.json()['response']
-    all_users.close()
-    return users
+    time.sleep(0.1)
+    all_users=all_users.json()['response']
+    client_machines =[]
+    for a_user in all_users:
+        for username in username_list:
+            if a_user['username']==username:
+                client_machines.append(a_user)
+    return client_machines

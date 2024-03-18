@@ -17,56 +17,42 @@ def main():
     while option!= None:
         print ()
         print('*'*100,"\n") 
-        print("[1]Reset SecureAccess Lab in Duo & AWS")
-        print("[2]Reset Duo MFA bypasscodes only")
-        print("[3]Reset AWS clients only")
-        print("[4]Start Secure Access Lab")
+        print("[1]Delete Duo Bypass codes & reset AWS client machines ")
+        print("[2]Delete Duo Bypass codes")
+        print("[3]Reset AWS clients machines")
+        print("[4]Set new Duo bypass code ")
+        print("[5]Start AWS client machines ")
         print("[0]Exit")
         selection=input("Select any option number :" )
-        while not selection.isdigit():
+        while (not selection.isdigit()) or (int(selection) >5)  or (int(selection) <0) :
             print("\nInvalid option. Try again!")
             selection=input("Select any option number :" )
         option= int(selection) 
 
         if option==0:
             option=None
-        elif option==1:
+
+        elif option==1 or option==2:
             print("\t",'='*100) 
+            # Delete Duo Bypass codes
             users= duo.get_all_users(hostname,skey,ikey)
             all_bypass_codes=duo.get_bypass_codes(users, hostname,skey,ikey)
             duo.delete_bypass_codes(all_bypass_codes, hostname, skey, ikey)
-            reset_aws=input("\n\t\tAre you sure you want to reset the AWS client machines? [y/n]: ")
-            if reset_aws=='y'or reset_aws=='Y':
-                i,aws_clients=1,[]
-                print("\t",'='*100) 
-                while i <=15:
-                    aws_clients.append("win11-client"+str(i))
-                    i+=1
-                lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
-                stop_status= aws.stop_ec2_instances(ec2_client, lab_ec2_instances)
-                volumeIds= aws.reset_ec2_volumes(ec2_client, lab_ec2_instances)
+            if(option ==1):
+                #Reset AWS client machines
+                reset_aws=input("\n\t\tAre you sure you want to reset the AWS client machines? [y/n]: ")
+                if reset_aws=='y'or reset_aws=='Y':
+                    i,aws_clients=1,[]
+                    print("\t",'='*100) 
+                    while i <=15:
+                        aws_clients.append("win11-client"+str(i))
+                        i+=1
+                    lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
+                    stop_status= aws.stop_ec2_instances(ec2_client, lab_ec2_instances)
+                    volumeIds= aws.reset_ec2_volumes(ec2_client, lab_ec2_instances)
 
-        elif option==2 or option==4:
-            i,aws_clients=1,[]
-            print("\t",'='*100) 
-            bypass_code=input("\tEnter a 9-digit Duo MFA bypass code [or] Press enter to system-generate a bypass code :")
-            if len(bypass_code) <9:
-                bypass_code = random.randint(100000000, 999999999)
-                print("\tSystem generated Duo bypass code:", bypass_code)
-            users= duo.get_all_users(hostname,skey,ikey)
-            duo.set_bypass_codes(users, hostname, skey, ikey,bypass_code)
-            if option==4:
-                inp= input("\tEnter number of clients to initiate [1-15]:")
-                if (not inp.isdigit()) or int(inp) > 15 or int(inp) <1:
-                    print("\tInvalid Entry ! No Clients were started")
-                    
-                while i <=int(inp):
-                    aws_clients.append("win11-client"+str(i))
-                    i+=1
-                
-                lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
-                start_status = aws.start_ec2_instances(ec2_client, lab_ec2_instances)
         elif option==3:
+            #Reset AWS client machines
             i,aws_clients=1,[]
             print("\t",'='*100) 
             while i <=15:
@@ -75,6 +61,30 @@ def main():
             lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
             stop_status= aws.stop_ec2_instances(ec2_client, lab_ec2_instances)
             volumeIds= aws.reset_ec2_volumes(ec2_client, lab_ec2_instances)
+
+
+        elif option==4:
+            # Set new Duo Bypass code
+            bypass_code=input("\tEnter a 9-digit Duo MFA bypass code [or] Press enter to system-generate a bypass code :")
+            if len(bypass_code) <9:
+                bypass_code = random.randint(100000000, 999999999)
+                print("\tSystem generated Duo bypass code:", bypass_code)
+            users= duo.get_all_users(hostname,skey,ikey)
+            duo.set_bypass_codes(users, hostname, skey, ikey,bypass_code)
+            
+        elif option==5:
+            #Start AWS client machines
+            i,aws_clients=1,[]
+            print("\t",'='*100) 
+            inp= input("\tEnter number of clients to start [1-15]:")
+            if (not inp.isdigit()) or int(inp) > 15 or int(inp) <1:
+                print("\tInvalid Entry ! No Clients were started")
+            else:
+                while i <=int(inp):
+                    aws_clients.append("win11-client"+str(i))
+                    i+=1 
+                lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
+                start_status = aws.start_ec2_instances(ec2_client, lab_ec2_instances)
         else:
             option=-1
 
