@@ -16,15 +16,20 @@ def start_ec2_instances(ec2_client,ec2_instances):
     for instance in ec2_instances: 
         instance_tag=instance['Tags'][0]
         ec2_client.start_instances(InstanceIds=[instance['InstanceId']])
+        print("\t\t",instance_tag['Value']," ec2 started.")
+        '''
         print("\t\t",instance_tag['Value']," ec2 started. Please wait! It may take upto 30-60 sec to complete...")
         instance_runner_waiter = ec2_client.get_waiter('instance_running')
         instance_runner_waiter.wait(InstanceIds=[instance['InstanceId']])
         waiter = ec2_client.get_waiter('instance_running')
-        waiter.wait(
+       
+         waiter.wait(
             InstanceIds=[instance['InstanceId']]
             )
         print("\t\tClient",i," ec2 is RUNNING.")
+        '''
         i+=1
+    print("\n\tVerify the ec2 instances are RUNNING in the AWS console. Each instance may take upto 30-60 sec to complete...")
     return 
 
 def stop_ec2_instances(ec2_client,ec2_instances):
