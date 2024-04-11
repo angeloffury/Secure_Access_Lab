@@ -22,9 +22,10 @@ def main():
         print("[3]Reset AWS clients machines")
         print("[4]Set new Duo bypass code ")
         print("[5]Start AWS client machines ")
+        print("[6]Create new Golden Snapshots of AWS client machines")
         print("[0]Exit")
         selection=input("Select any option number :" )
-        while (not selection.isdigit()) or (int(selection) >5)  or (int(selection) <0) :
+        while (not selection.isdigit()) or (int(selection) >6)  or (int(selection) <0) :
             print("\nInvalid option. Try again!")
             selection=input("Select any option number :" )
         option= int(selection) 
@@ -49,6 +50,7 @@ def main():
                         i+=1
                     lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
                     stop_status= aws.stop_ec2_instances(ec2_client, lab_ec2_instances)
+                    print()
                     volumeIds= aws.reset_ec2_volumes(ec2_client, lab_ec2_instances)
 
         elif option==3:
@@ -60,6 +62,7 @@ def main():
                 i+=1
             lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
             stop_status= aws.stop_ec2_instances(ec2_client, lab_ec2_instances)
+            print()
             volumeIds= aws.reset_ec2_volumes(ec2_client, lab_ec2_instances)
 
 
@@ -85,6 +88,24 @@ def main():
                     i+=1 
                 lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
                 start_status = aws.start_ec2_instances(ec2_client, lab_ec2_instances)
+
+        elif option==6:
+            #Create new Golden Snapshots of AWS client machines
+            i=1
+            print("\t",'='*100) 
+            while i <=15:
+                snapshot_name="win11-client"+str(i)+"-golden"
+                aws_client_name="win11-client"+str(i)
+                print("\n\tTrying to delete Snapshot of",snapshot_name)
+                aws.delete_snapshot_by_name(ec2_client,snapshot_name)
+                volumeId= aws.get_volume_ids_by_ec2_name(ec2_client,aws_client_name)
+                lab_ec2_instances=aws.get_ec2_instances(ec2_client, [aws_client_name])
+                print("\tStopping", aws_client_name , "before Snapshot creation")
+                aws.stop_ec2_instances(ec2_client, lab_ec2_instances)
+                print("\tTrying to create new Golden snapshot of", aws_client_name, volumeId)
+                aws.create_snapshot(ec2_client,volumeId,snapshot_name,snapshot_name)
+                i+=1
+
         else:
             option=-1
 

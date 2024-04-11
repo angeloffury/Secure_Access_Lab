@@ -46,7 +46,6 @@ def stop_ec2_instances(ec2_client,ec2_instances):
             )
         print("\t\t",instance_tag['Value']," ec2 is STOPPED.")
         i+=1
-    print()
     return 
 
 def detach_ebs_volume(ec2_client,instance_id,volume_id):
@@ -149,4 +148,82 @@ def reset_ec2_volumes(ec2_client,ec2_instances):
         print(ERR)
         exit()
        
+def delete_snapshot_by_name(ec2_client,snapshot_name):
+    """
+    Deletes an AWS snapshot with a specific name.
+    """
+    try:
+        
+        # Get list of available snapshots
+        response = ec2_client.describe_snapshots(Filters=[{'Name': 'tag:Name', 'Values': [snapshot_name]}])
+
+        # Iterate over snapshots with the specified name
+        for snapshot in response['Snapshots']:
+            snapshot_id = snapshot['SnapshotId']
+
+            # Delete the snapshot
+            ec2_client.delete_snapshot(SnapshotId=snapshot_id)
+            print(f"\tDELETED snapshot of", snapshot_name)
+    
+        return True
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return False
+    
+
+def get_volume_ids_by_ec2_name(ec2_client, aws_client_name):
+    """
+    Get volume IDs associated with an EC2 instance using its name tag.
+    """
+    try:
+
+        # Get the instance IDs by searching for instances with the specified name tag
+        response = ec2_client.describe_instances(Filters=[{'Name': 'tag:Name', 'Values': [aws_client_name]}])
+
+        # Extract volume IDs associated with the instances
+        volume_ids = []
+        for reservation in response['Reservations']:
+            for instance in reservation['Instances']:
+                for volume in instance['BlockDeviceMappings']:
+                    volume_ids.append(volume['Ebs']['VolumeId'])
+
+        number_of_volume_ids=len(volume_ids)
+        if(number_of_volume_ids==1):
+            return volume_ids[0]
+        elif (number_of_volume_ids==0):
+            raise("No Volume IDs found. Please check AWS Instance.")
+        else:
+            raise("More than 1 Volume IDs found. Please check AWS Instance")
+    except Exception as e:
+        print(f"\tAn error occurred: {e}")
+        return []
+
+
+
+def create_snapshot(ec2_client,volume_id, snapshot_name, snapshot_description):
+    """
+    Creates an AWS snapshot with a specific name and description.
+    """
+    try:
+
+        # Create the snapshot
+        response = ec2_client.create_snapshot(
+            VolumeId=volume_id,
+            Description=snapshot_description,
+            TagSpecifications=[
+                {
+                    'ResourceType': 'snapshot',
+                    'Tags': [
+                        {'Key': 'Name', 'Value': snapshot_name},
+                    ]
+                },
+            ]
+        )
+
+        snapshot_id = response['SnapshotId']
+        print(f"\tCREATED new Golden image for",snapshot_name)
+        return snapshot_id
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
