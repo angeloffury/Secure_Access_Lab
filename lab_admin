@@ -8,7 +8,9 @@ from dotenv import load_dotenv
 load_dotenv()
 aws_access_key_id,aws_secret_access_key, region_name= os.environ.get('aws_access_key_id'), os.environ.get('aws_secret_access_key'), os.environ.get('region_name')
 ikey,skey,hostname= os.environ.get('ikey'), os.environ.get('skey'),os.environ.get('hostname')
+total_clients=int(os.environ.get('total_clients'))
 session = boto3.Session(aws_access_key_id = aws_access_key_id,aws_secret_access_key=aws_secret_access_key, region_name=region_name)
+
 
 ec2_client = session.client("ec2")
 
@@ -45,7 +47,7 @@ def main():
                 if reset_aws=='y'or reset_aws=='Y':
                     i,aws_clients=1,[]
                     print("\t",'='*100) 
-                    while i <=15:
+                    while i <=total_clients:
                         aws_clients.append("win11-client"+str(i))
                         i+=1
                     lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
@@ -57,7 +59,7 @@ def main():
             #Reset AWS client machines
             i,aws_clients=1,[]
             print("\t",'='*100) 
-            while i <=15:
+            while i <=total_clients:
                 aws_clients.append("win11-client"+str(i))
                 i+=1
             lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
@@ -79,8 +81,8 @@ def main():
             #Start AWS client machines
             i,aws_clients=1,[]
             print("\t",'='*100) 
-            inp= input("\tEnter number of clients to start [1-15]:")
-            if (not inp.isdigit()) or int(inp) > 15 or int(inp) <1:
+            inp= input("\tEnter number of clients to start [1-20]:")
+            if (not inp.isdigit()) or int(inp) > 20 or int(inp) <1:
                 print("\tInvalid Entry ! No Clients were started")
             else:
                 while i <=int(inp):
@@ -93,7 +95,7 @@ def main():
             #Create new Golden Snapshots of AWS client machines
             i=1
             print("\t",'='*100) 
-            while i <=15:
+            while i <=total_clients:
                 snapshot_name="win11-client"+str(i)+"-golden"
                 aws_client_name="win11-client"+str(i)
                 print("\n\tTrying to delete Snapshot of",snapshot_name)

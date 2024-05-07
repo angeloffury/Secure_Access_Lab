@@ -3,6 +3,11 @@ import requests
 import time
 import util
 import json
+import os
+
+from dotenv import load_dotenv
+load_dotenv()
+total_clients=int(os.environ.get('total_clients'))
 
 #Get all bypass codes of users
 def get_bypass_codes(users,hostname,skey,ikey) :
@@ -67,7 +72,7 @@ def delete_bypass_codes(bypas_codes,hostname,skey,ikey):
 def get_all_users(hostname,skey,ikey):
     path = '/admin/v1/users'
     i,username_list=1,[]
-    while i <=15:
+    while i <=total_clients:
         username_list.append('client'+str(i))
         i+=1
     api_auth = util.sign('GET',hostname,path,{},skey,ikey)
