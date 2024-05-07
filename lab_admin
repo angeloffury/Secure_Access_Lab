@@ -81,8 +81,8 @@ def main():
             #Start AWS client machines
             i,aws_clients=1,[]
             print("\t",'='*100) 
-            inp= input("\tEnter number of clients to start [1-20]:")
-            if (not inp.isdigit()) or int(inp) > 20 or int(inp) <1:
+            inp= input("\tEnter number of clients to start [1-"+str(total_clients)+"]:")
+            if (not inp.isdigit()) or int(inp) > total_clients or int(inp) <1:
                 print("\tInvalid Entry ! No Clients were started")
             else:
                 while i <=int(inp):
