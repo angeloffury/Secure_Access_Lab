@@ -1,6 +1,7 @@
 import boto3
 import aws
 import duo
+import secure_access
 import os
 import random
 
@@ -25,9 +26,12 @@ def main():
         print("[4]Set new Duo bypass code ")
         print("[5]Start AWS client machines ")
         print("[6]Create new Golden Snapshots of AWS client machines")
+        print("[7]Set Secure Access Lab Admins to Read-only")
+        print("[8]Clean up Secure Access Dashboard rules [except Web Profile & DLP]")
+        print("[9]Set Secure Access Lab Admins to Read-write")
         print("[0]Exit")
         selection=input("Select any option number :" )
-        while (not selection.isdigit()) or (int(selection) >6)  or (int(selection) <0) :
+        while (not selection.isdigit()) or (int(selection) >9)  or (int(selection) <0) :
             print("\nInvalid option. Try again!")
             selection=input("Select any option number :" )
         option= int(selection) 
@@ -108,6 +112,43 @@ def main():
                 aws.create_snapshot(ec2_client,volumeId,snapshot_name,snapshot_name)
                 i+=1
 
+        elif option==7:
+            # Set Secure Access Lab Admins to Read-only
+            secure_access.set_clients_to_read_only()
+            #secure_access.create_full_admin("4")
+
+        elif option ==8:
+            # Clean up Secure Access Dashboard rules [except DLP]
+            print ("\n\tClient's Access Policy Rules:")
+            rules = secure_access.get_all_access_rules()
+            if rules!= None:
+                secure_access.filter_client_access_rules(rules)
+            print("\n\tClient's Private resources:")
+            secure_access.delete_client_private_resources()
+            print("\n\tClient's Private resource Groups:")
+            secure_access.delete_client_private_resource_groups()
+            print("\n\tClient's Endpoint Posture Profile:")
+            posture_profiles = secure_access.get_all_posture_profiles_v1()
+            if(posture_profiles!= None):
+                secure_access.delete_posture_profile_v1(posture_profiles)
+            print("\n\tClient's Destination Lists:")
+            destination_lists=secure_access.get_all_destination_lists()
+            if(destination_lists!=None):
+                secure_access.delete_destination_lists(destination_lists)
+            print("\n\tClient's Roaming devices:")
+            roaming_devices=secure_access.get_all_roaming_devices()
+            if(roaming_devices!=None):
+                secure_access.delete_roaming_devices(roaming_devices)
+            
+            print("\n\n\t-------- NEED MANUAL INTERVENTION --------")
+            print("\tSince there are NO APIs available, kindly delete the below parts in the Secure Access Admin Dashboard")
+            print("\n\t 1.Delete Web Profiles (Secure > Profiles > Web Profiles)")
+            print("\t 2.Delete Data Loss Prevention Policies ( Secure > Policy > Data Loss Prevention Policy)")
+
+            
+        elif option ==9:
+            # Set Secure Access Lab Admins to Read-write
+            secure_access.set_clients_to_full_admin()
         else:
             option=-1
 
