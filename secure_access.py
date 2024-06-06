@@ -72,7 +72,6 @@ def filter_client_access_rules(access_rules):
     all_access_rules =access_rules["results"]
     for rule in all_access_rules:
         if ("client0-" not in rule["ruleName"]) and ("DNS Inbound" not in rule["ruleName"]) and ("For all" not in rule["ruleName"]):
-            print(rule["ruleName"],"\n")
             filtered_ruleIds.append(rule["ruleId"])
     if filtered_ruleIds!= []:
         delete_rules_bulk_v1(filtered_ruleIds) #change to v2 version
