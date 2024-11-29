@@ -7,6 +7,7 @@ from oauthlib.oauth2 import TokenExpiredError
 from requests_oauthlib import OAuth2Session
 from requests.auth import HTTPBasicAuth
 import time
+import logging
 
 # Export/Set the environment variables
 csa_client_id = os.environ.get('csa_api_key')
@@ -73,11 +74,8 @@ def filter_client_access_rules(access_rules):
     for rule in all_access_rules:
         if ("client0-" not in rule["ruleName"]) and ("DNS Inbound" not in rule["ruleName"]) and ("For all" not in rule["ruleName"]):
             filtered_ruleIds.append(rule["ruleId"])
-    if filtered_ruleIds!= []:
-        delete_rules_bulk_v1(filtered_ruleIds) #change to v2 version
-    else:
-        print ("\n\t\tNo Access policy rules to DELETE")
-        
+            print("\t\t",rule["ruleName"])
+    return filtered_ruleIds
 
 
 def delete_rules_bulk_v1(rule_ids):
@@ -90,14 +88,40 @@ def delete_rules_bulk_v1(rule_ids):
     params = {
         "rulesIds": ",".join(str(rule_id) for rule_id in rule_ids)
     }
-
+    new_url=url+"?rulesIds="+params["rulesIds"]
     try:
         print("\t\tAll the above Access Policy DELETE in progress...")
-        response = requests.delete(url, headers=headers, params=params)
+        print (new_url)
+        response=requests.delete(new_url, headers=headers)
+        # response = requests.delete(url, headers=headers, params=params)
         response.raise_for_status()  # Raise an exception for 4xx and 5xx status codes
         print("\t\tAll Access Policy rules DELETED successfully (except Client0).")
     except requests.exceptions.RequestException as e:
         print("Error:", e)
+        logging.exception(e)
+
+def delete_rules_bulk(rule_ids):
+   
+    access_token = api.GetToken()["access_token"]
+    url = "https://api.sse.cisco.com/policies/v2/rules/"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    print("\t\tAll the Access Policy DELETE in progress...")
+    print("\t\t", end='')
+    for rule_id in rule_ids:
+        new_url=url+str(rule_id)
+        try:
+            print('*', end='')
+            response=requests.delete(new_url, headers=headers)
+            # response = requests.delete(url, headers=headers, params=params)
+            #response.raise_for_status()  # Raise an exception for 4xx and 5xx status codes
+        except requests.exceptions.RequestException as e:
+            print("Error:", e)
+            logging.exception(e)
+    print("\n\t\tAll Access Policy rules DELETED successfully (except Client0).")
+    return
 
 def get_all_private_resources():
     access_token = api.GetToken()["access_token"]
@@ -137,7 +161,7 @@ def delete_private_resources(pvt_resources):
 def delete_client_private_resources():
     all_pvt_resources = get_all_private_resources()
     deleted= False
-    while int(all_pvt_resources["total"])!=3:
+    while int(all_pvt_resources["total"])!=4:
         delete_private_resources(all_pvt_resources["items"])
         deleted=True
         all_pvt_resources = get_all_private_resources()

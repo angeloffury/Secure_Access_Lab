@@ -115,26 +115,36 @@ def main():
         elif option==7:
             # Set Secure Access Lab Admins to Read-only
             secure_access.set_clients_to_read_only()
-            #secure_access.create_full_admin("4")
+            #secure_access.create_full_admin("2")
 
         elif option ==8:
-            # Clean up Secure Access Dashboard rules [except DLP]
+            #Clean up Secure Access Dashboard rules [except DLP]
             print ("\n\tClient's Access Policy Rules:")
             rules = secure_access.get_all_access_rules()
             if rules!= None:
-                secure_access.filter_client_access_rules(rules)
+                filtered_ruleIds=secure_access.filter_client_access_rules(rules)
+            if filtered_ruleIds!= []:
+                secure_access.delete_rules_bulk(filtered_ruleIds) 
+            else:
+                print ("\n\t\tNo Access policy rules to DELETE")
+        
+
             print("\n\tClient's Private resources:")
             secure_access.delete_client_private_resources()
+
             print("\n\tClient's Private resource Groups:")
             secure_access.delete_client_private_resource_groups()
+
             print("\n\tClient's Endpoint Posture Profile:")
             posture_profiles = secure_access.get_all_posture_profiles_v1()
             if(posture_profiles!= None):
                 secure_access.delete_posture_profile_v1(posture_profiles)
+
             print("\n\tClient's Destination Lists:")
             destination_lists=secure_access.get_all_destination_lists()
             if(destination_lists!=None):
                 secure_access.delete_destination_lists(destination_lists)
+
             print("\n\tClient's Roaming devices:")
             roaming_devices=secure_access.get_all_roaming_devices()
             if(roaming_devices!=None):
