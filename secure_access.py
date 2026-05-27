@@ -437,7 +437,8 @@ def set_clients_to_read_only():
     all_admins=get_all_admins()
     for admin in all_admins:
         #check if admin's last name is 1- N
-        if admin["lastname"].isdigit():
+        lastname = admin.get("lastname")
+        if isinstance(lastname, str) and lastname.isdigit():
             client_num=int(admin["lastname"])
             if client_num> 0 & client_num<= total_clients:
                 if admin["roleId"]==2:
@@ -455,7 +456,8 @@ def set_clients_to_full_admin():
     all_admins=get_all_admins()
     for admin in all_admins:
         #check if admin's last name is 1- N
-        if admin["lastname"].isdigit():
+        lastname = admin.get("lastname")
+        if isinstance(lastname, str) and lastname.isdigit():
             client_num=int(admin["lastname"])
             if client_num> 0 & client_num<= total_clients:
                 if admin["roleId"]==1:

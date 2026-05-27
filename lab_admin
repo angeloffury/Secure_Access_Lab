@@ -29,6 +29,8 @@ def main():
         print("[7]Set Secure Access Lab Admins to Read-only")
         print("[8]Clean up Secure Access Dashboard rules [except Web Profile & DLP]")
         print("[9]Set Secure Access Lab Admins to Read-write")
+        print("[10]Delete specific Duo Bypass codes")
+        print("[11]Reset specific AWS clients machine")
         print("[0]Exit")
         selection=input("Select any option number :" )
         while (not selection.isdigit()) or (int(selection) >9)  or (int(selection) <0) :
@@ -159,6 +161,21 @@ def main():
         elif option ==9:
             # Set Secure Access Lab Admins to Read-write
             secure_access.set_clients_to_full_admin()
+
+        elif option==11:
+            #Reset AWS client machine x
+            i,aws_clients=0,[]
+            print("\t",'='*100) 
+            inp= input("\tEnter the specific AWS client number to RESET [1-"+str(total_clients)+"]:")
+            if (not inp.isdigit()) or int(inp) > total_clients or int(inp) <1:
+                print("\tInvalid Entry ! No Clients were RESET")
+            else:
+                i=inp
+                aws_clients.append("win11-client"+str(i))
+                lab_ec2_instances=aws.get_ec2_instances(ec2_client, aws_clients)
+                stop_status= aws.stop_ec2_instances(ec2_client, lab_ec2_instances)
+                print()
+                volumeIds= aws.reset_ec2_volumes(ec2_client, lab_ec2_instances)
         else:
             option=-1
 
